@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Routes API Demo</title>
+    <link rel="stylesheet" href="simple-routes-api.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Simple Routes API Demo</h1>
+            <p>Google Maps Routes API를 사용한 경로 계산 및 거리 매트릭스 (일본 지역 테스트)</p>
+        </header>
+
+        <div class="controls">
+            <div class="section">
+                <h3>경로 계산 (Compute Route Directions)</h3>
+                <div class="route-section">
+                    <div class="input-group">
+                        <label>출발지 (위도, 경도):</label>
+                        <input type="number" id="originLat" placeholder="위도" value="35.6762" step="any">
+                        <input type="number" id="originLng" placeholder="경도" value="139.6503" step="any">
+                        <button onclick="setCurrentLocation('origin')">현재 위치</button>
+                    </div>
+
+                    <div class="input-group">
+                        <label>도착지 (위도, 경도):</label>
+                        <input type="number" id="destLat" placeholder="위도" value="35.6581" step="any">
+                        <input type="number" id="destLng" placeholder="경도" value="139.7414" step="any">
+                        <button onclick="setCurrentLocation('destination')">현재 위치</button>
+                    </div>
+
+                    <div class="input-group">
+                        <label>이동 방법:</label>
+                        <select id="travelMode">
+                            <option value="DRIVE">자동차</option>
+                            <option value="WALK">도보</option>
+                            <option value="BICYCLE">자전거</option>
+                            <option value="TRANSIT">대중교통</option>
+                        </select>
+
+                        <label>경로 선호도:</label>
+                        <select id="routingPreference">
+                            <option value="TRAFFIC_AWARE">교통상황 고려</option>
+                            <option value="TRAFFIC_UNAWARE">교통상황 무시</option>
+                            <option value="TRAFFIC_AWARE_OPTIMAL">최적 교통상황</option>
+                        </select>
+
+                        <button onclick="computeRoute()">경로 계산</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>거리 매트릭스 (Compute Route Matrix)</h3>
+                <div class="matrix-section">
+                    <div class="input-group">
+                        <label>출발지들 (여러 개 가능):</label>
+                        <textarea id="origins" rows="3" placeholder="35.6762,139.6503&#10;35.6581,139.7414"
+                        >35.6762,139.6503
+35.6581,139.7414</textarea>
+                    </div>
+
+                    <div class="input-group">
+                        <label>도착지들 (여러 개 가능):</label>
+                        <textarea id="destinations" rows="3" placeholder="35.6586,139.7454&#10;35.6785,139.6823"
+                        >35.6586,139.7454
+35.6785,139.6823</textarea>
+                    </div>
+
+                    <div class="input-group">
+                        <select id="matrixTravelMode">
+                            <option value="DRIVE">자동차</option>
+                            <option value="WALK">도보</option>
+                            <option value="BICYCLE">자전거</option>
+                            <option value="TRANSIT">대중교통</option>
+                        </select>
+                        <button onclick="computeRouteMatrix()">매트릭스 계산</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="map"></div>
+
+        <div class="results-container">
+            <div class="results-panel">
+                <h3>경로 결과</h3>
+                <div id="routeResults" class="results-content"></div>
+            </div>
+            <div class="results-panel">
+                <h3>매트릭스 결과</h3>
+                <div id="matrixResults" class="results-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Google Maps JavaScript API -->
+    <script async defer
+        src="http://mondrian-new.sphinfo.co.kr:9443/google/jsapi/maps/api/js?key=YOUR_API_KEY&pass=YOUR_PASS&libraries=geometry&callback=initMap&loading=async">
+    </script>
+    <script src="simple-routes-api.js"></script>
+</body>
+</html>

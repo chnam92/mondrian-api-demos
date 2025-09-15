@@ -1,0 +1,923 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Google Maps API 프록시 테스트</title>
+    <link rel="stylesheet" href="mondrian-test.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>🗺️ Google Maps API 프록시 테스트</h1>
+
+      <!-- 설정 섹션 -->
+      <div class="config-section">
+        <h2>⚙️ 설정</h2>
+        <div class="form-group">
+          <label for="apiKey">API Key:</label>
+          <input
+            type="text"
+            id="apiKey"
+            value="YOUR_API_KEY"
+            placeholder="Google Maps API Key를 입력하세요"
+          />
+        </div>
+        <div class="form-group">
+          <label for="clientId">Client ID (Legacy):</label>
+          <input
+            type="text"
+            id="clientId"
+            placeholder="gme-company&signature=... (선택사항)"
+          />
+        </div>
+        <div class="form-group">
+          <label for="serverUrl">서버 URL:</label>
+          <input
+            type="text"
+            id="serverUrl"
+            value="http://mondrian-new.sphinfo.co.kr:8080"
+            placeholder="프록시 서버 URL"
+          />
+        </div>
+        <div class="form-group">
+          <button id="healthCheck" class="test-btn" style="max-width: 200px">
+            서버 상태 확인
+          </button>
+        </div>
+        <div
+          id="healthStatus"
+          class="health-status"
+          style="display: none"
+        ></div>
+      </div>
+
+      <!-- Maps JavaScript API 테스트 -->
+      <div class="config-section">
+        <h2>🗺️ Google Maps JavaScript API</h2>
+        <p class="description">
+          프록시를 통해 Google Maps JavaScript API를 로드하고 지도를 표시합니다.
+        </p>
+        <button id="loadMapJs" class="test-btn" style="max-width: 200px">
+          지도 로드
+        </button>
+        <div id="map" class="map-container" style="display: none"></div>
+      </div>
+
+      <!-- Places Library 클라이언트 테스트 -->
+      <div class="config-section">
+        <h2>🏢 Places Library (클라이언트 사이드)</h2>
+        <p class="description">
+          Places Library를 사용한 실제 Autocomplete 위젯과 PlacesService
+          예제입니다.
+        </p>
+
+        <div
+          style="
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+          "
+        >
+          <!-- Autocomplete Widget -->
+          <div>
+            <h3>📍 Autocomplete Widget</h3>
+            <p style="font-size: 14px; color: #666; margin-bottom: 15px">
+              실제 Google Places Autocomplete를 사용한 주소 입력 필드입니다.
+            </p>
+            <input
+              id="autocomplete-widget"
+              type="text"
+              placeholder="주소를 입력하세요..."
+              style="
+                width: 100%;
+                padding: 12px;
+                border: 2px solid #ddd;
+                border-radius: 8px;
+                font-size: 14px;
+              "
+            />
+            <div
+              id="autocomplete-result"
+              style="
+                margin-top: 15px;
+                padding: 15px;
+                background: #f8f9fa;
+                border-radius: 6px;
+                font-size: 13px;
+                line-height: 1.5;
+                display: none;
+              "
+            ></div>
+          </div>
+
+          <!-- PlacesService -->
+          <div>
+            <h3>🔍 PlacesService Search</h3>
+            <p style="font-size: 14px; color: #666; margin-bottom: 15px">
+              PlacesService를 사용한 텍스트 검색과 근처 장소 검색입니다.
+            </p>
+            <div style="display: flex; gap: 10px; margin-bottom: 10px">
+              <input
+                id="places-query"
+                type="text"
+                placeholder="검색어 (예: 스타벅스)"
+                value="스타벅스"
+                style="
+                  flex: 1;
+                  padding: 8px 12px;
+                  border: 1px solid #ddd;
+                  border-radius: 6px;
+                  font-size: 14px;
+                "
+              />
+              <button
+                id="search-places"
+                class="test-btn"
+                style="margin: 0; max-width: 120px; padding: 8px 16px"
+              >
+                검색
+              </button>
+            </div>
+            <div
+              id="places-results"
+              style="
+                max-height: 250px;
+                overflow-y: auto;
+                padding: 15px;
+                background: #f8f9fa;
+                border-radius: 6px;
+                font-size: 13px;
+                line-height: 1.5;
+              "
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Legacy API 테스트 그리드 -->
+      <div class="test-grid">
+        <!-- 지오코딩 API -->
+        <div class="test-card">
+          <h3>📍 지오코딩 API</h3>
+          <div class="description">
+            주소를 좌표로 변환하거나 좌표를 주소로 변환합니다.
+          </div>
+          <div class="endpoint-url">/google/wsapi/maps/api/geocode/json</div>
+
+          <div style="margin-bottom: 15px">
+            <strong>순방향 지오코딩 (주소 → 좌표)</strong>
+            <div class="form-row">
+              <label>주소:</label>
+              <input
+                type="text"
+                id="geocode-address"
+                placeholder="서울특별시 강남구 테헤란로 152"
+                value="서울특별시 강남구 테헤란로 152"
+              />
+            </div>
+            <button class="test-btn" onclick="testGeocodingForward()">
+              순방향 지오코딩 테스트
+            </button>
+          </div>
+
+          <div>
+            <strong>역방향 지오코딩 (좌표 → 주소)</strong>
+            <div class="form-row">
+              <label>위도,경도:</label>
+              <input
+                type="text"
+                id="geocode-latlng"
+                placeholder="37.5665,126.978"
+                value="37.5665,126.978"
+              />
+            </div>
+            <button class="test-btn" onclick="testGeocodingReverse()">
+              역방향 지오코딩 테스트
+            </button>
+          </div>
+        </div>
+
+        <!-- Places Autocomplete -->
+        <div class="test-card">
+          <h3>🔍 Places Autocomplete</h3>
+          <div class="description">
+            사용자 입력에 따른 장소 자동완성 기능을 테스트합니다.
+          </div>
+          <div class="endpoint-url">
+            /google/wsapi/maps/api/place/autocomplete/json
+          </div>
+
+          <div class="form-row">
+            <label>검색어:</label>
+            <input
+              type="text"
+              id="autocomplete-input"
+              placeholder="스타벅스"
+              value="스타벅스"
+            />
+          </div>
+          <div class="form-row">
+            <label>언어:</label>
+            <select id="autocomplete-language">
+              <option value="ko">한국어</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+          <button class="test-btn" onclick="testAutocomplete()">
+            자동완성 테스트
+          </button>
+        </div>
+
+        <!-- Places Details -->
+        <div class="test-card">
+          <h3>📋 Places Details</h3>
+          <div class="description">특정 장소의 상세 정보를 가져옵니다.</div>
+          <div class="endpoint-url">
+            /google/jsapi/maps/api/place/details/json
+          </div>
+
+          <div class="form-row">
+            <label>Place ID:</label>
+            <input
+              type="text"
+              id="details-placeid"
+              placeholder="ChIJN1t_tDeuEmsRUsoyG83frY4"
+              value="ChIJN1t_tDeuEmsRUsoyG83frY4"
+            />
+          </div>
+          <div class="form-row">
+            <label>필드:</label>
+            <input
+              type="text"
+              id="details-fields"
+              placeholder="name,formatted_address,rating"
+              value="name,formatted_address,rating,geometry"
+            />
+          </div>
+          <button class="test-btn" onclick="testPlaceDetails()">
+            장소 상세정보 테스트
+          </button>
+        </div>
+
+        <!-- Places Text Search -->
+        <div class="test-card">
+          <h3>🔎 Places Text Search</h3>
+          <div class="description">텍스트 기반으로 장소를 검색합니다.</div>
+          <div class="endpoint-url">
+            /google/jsapi/maps/api/place/textsearch/json
+          </div>
+
+          <div class="form-row">
+            <label>검색어:</label>
+            <input
+              type="text"
+              id="textsearch-query"
+              placeholder="서울 카페"
+              value="서울 카페"
+            />
+          </div>
+          <div class="form-row">
+            <label>위치:</label>
+            <input
+              type="text"
+              id="textsearch-location"
+              placeholder="37.5665,126.978"
+              value="37.5665,126.978"
+            />
+          </div>
+          <div class="form-row">
+            <label>반경(m):</label>
+            <input
+              type="number"
+              id="textsearch-radius"
+              placeholder="5000"
+              value="5000"
+            />
+          </div>
+          <button class="test-btn" onclick="testTextSearch()">
+            텍스트 검색 테스트
+          </button>
+        </div>
+
+        <!-- Places Nearby Search -->
+        <div class="test-card">
+          <h3>📍 Places Nearby Search</h3>
+          <div class="description">특정 위치 근처의 장소를 검색합니다.</div>
+          <div class="endpoint-url">
+            /google/jsapi/maps/api/place/nearbysearch/json
+          </div>
+
+          <div class="form-row">
+            <label>위치:</label>
+            <input
+              type="text"
+              id="nearby-location"
+              placeholder="37.5665,126.978"
+              value="37.5665,126.978"
+            />
+          </div>
+          <div class="form-row">
+            <label>반경(m):</label>
+            <input
+              type="number"
+              id="nearby-radius"
+              placeholder="1500"
+              value="1500"
+            />
+          </div>
+          <div class="form-row">
+            <label>타입:</label>
+            <select id="nearby-type">
+              <option value="restaurant">레스토랑</option>
+              <option value="cafe">카페</option>
+              <option value="hospital">병원</option>
+              <option value="bank">은행</option>
+            </select>
+          </div>
+          <button class="test-btn" onclick="testNearbySearch()">
+            근처 검색 테스트
+          </button>
+        </div>
+
+        <!-- Find Place -->
+        <div class="test-card">
+          <h3>🎯 Find Place</h3>
+          <div class="description">텍스트 또는 전화번호로 장소를 찾습니다.</div>
+          <div class="endpoint-url">
+            /google/jsapi/maps/api/place/findplacefromtext/json
+          </div>
+
+          <div class="form-row">
+            <label>입력값:</label>
+            <input
+              type="text"
+              id="findplace-input"
+              placeholder="롯데월드타워"
+              value="롯데월드타워"
+            />
+          </div>
+          <div class="form-row">
+            <label>입력 타입:</label>
+            <select id="findplace-inputtype">
+              <option value="textquery">텍스트</option>
+              <option value="phonenumber">전화번호</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>필드:</label>
+            <input
+              type="text"
+              id="findplace-fields"
+              placeholder="place_id,name,geometry"
+              value="place_id,name,geometry,formatted_address"
+            />
+          </div>
+          <button class="test-btn" onclick="testFindPlace()">
+            장소 찾기 테스트
+          </button>
+        </div>
+
+        <!-- Directions -->
+        <div class="test-card">
+          <h3>🛣️ Directions</h3>
+          <div class="description">출발지와 목적지 간의 경로를 검색합니다.</div>
+          <div class="endpoint-url">/google/jsapi/maps/api/directions/json</div>
+
+          <div class="form-row">
+            <label>출발지:</label>
+            <input
+              type="text"
+              id="directions-origin"
+              placeholder="서울역"
+              value="서울역"
+            />
+          </div>
+          <div class="form-row">
+            <label>목적지:</label>
+            <input
+              type="text"
+              id="directions-destination"
+              placeholder="강남역"
+              value="강남역"
+            />
+          </div>
+          <div class="form-row">
+            <label>이동방식:</label>
+            <select id="directions-mode">
+              <option value="driving">자동차</option>
+              <option value="walking">도보</option>
+              <option value="transit">대중교통</option>
+              <option value="bicycling">자전거</option>
+            </select>
+          </div>
+          <button class="test-btn" onclick="testDirections()">
+            경로 검색 테스트
+          </button>
+        </div>
+
+        <!-- Distance Matrix -->
+        <div class="test-card">
+          <h3>📏 Distance Matrix</h3>
+          <div class="description">
+            여러 출발지와 목적지 간의 거리와 시간을 계산합니다.
+          </div>
+          <div class="endpoint-url">
+            /google/jsapi/maps/api/distancematrix/json
+          </div>
+
+          <div class="form-row">
+            <label>출발지:</label>
+            <input
+              type="text"
+              id="matrix-origins"
+              placeholder="서울역|강남역"
+              value="서울역|강남역"
+            />
+          </div>
+          <div class="form-row">
+            <label>목적지:</label>
+            <input
+              type="text"
+              id="matrix-destinations"
+              placeholder="인천공항|김포공항"
+              value="인천공항|김포공항"
+            />
+          </div>
+          <div class="form-row">
+            <label>이동방식:</label>
+            <select id="matrix-mode">
+              <option value="driving">자동차</option>
+              <option value="walking">도보</option>
+              <option value="transit">대중교통</option>
+            </select>
+          </div>
+          <button class="test-btn" onclick="testDistanceMatrix()">
+            거리 매트릭스 테스트
+          </button>
+        </div>
+
+        <!-- Places Photos -->
+        <div class="test-card">
+          <h3>📷 Places Photos</h3>
+          <div class="description">
+            장소의 사진을 가져옵니다. (이미지 스트리밍)
+          </div>
+          <div class="endpoint-url">/google/wsapi/maps/api/place/photo</div>
+
+          <div class="form-row">
+            <label>Photo Reference:</label>
+            <input
+              type="text"
+              id="photo-reference"
+              placeholder="photo_reference 값"
+              value=""
+            />
+          </div>
+          <div class="form-row">
+            <label>최대 너비:</label>
+            <input
+              type="number"
+              id="photo-maxwidth"
+              placeholder="400"
+              value="400"
+            />
+          </div>
+          <div class="form-row">
+            <label>최대 높이:</label>
+            <input
+              type="number"
+              id="photo-maxheight"
+              placeholder="300"
+              value="300"
+            />
+          </div>
+          <button class="test-btn" onclick="testPlacesPhoto()">
+            사진 가져오기 테스트
+          </button>
+          <div id="photo-result" style="margin-top: 15px; display: none;">
+            <strong>사진 결과:</strong><br>
+            <img id="photo-image" style="max-width: 100%; border-radius: 8px; margin-top: 10px;" />
+          </div>
+        </div>
+      </div>
+
+      <!-- New Places API v1 테스트 그리드 -->
+      <div style="margin-top: 40px;">
+        <h2 style="text-align: center; color: #333; margin-bottom: 30px; font-size: 2em; 
+                   background: linear-gradient(45deg, #28a745, #20c997); 
+                   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+          🆕 New Places API (v1) - 2024/2025
+        </h2>
+        <p style="text-align: center; color: #666; margin-bottom: 30px; font-size: 16px;">
+          최신 Google Places API v1을 사용한 POST 요청 기반 API 테스트
+        </p>
+
+        <div class="test-grid">
+          <!-- New Text Search -->
+          <div class="test-card">
+            <h3>🔍 Text Search (New)</h3>
+            <div class="description">
+              새로운 Places API v1 텍스트 검색 - POST 요청 방식
+            </div>
+            <div class="endpoint-url">POST /v1/places:searchText</div>
+
+            <div class="form-row">
+              <label>검색어:</label>
+              <input
+                type="text"
+                id="new-textsearch-query"
+                placeholder="서울 맛집"
+                value="서울 맛집"
+              />
+            </div>
+            <div class="form-row">
+              <label>언어 코드:</label>
+              <input
+                type="text"
+                id="new-textsearch-language"
+                placeholder="ko"
+                value="ko"
+              />
+            </div>
+            <div class="form-row">
+              <label>결과 개수:</label>
+              <input
+                type="number"
+                id="new-textsearch-pagesize"
+                placeholder="10"
+                value="10"
+                min="1"
+                max="20"
+              />
+            </div>
+            <div class="form-row">
+              <label>Field Mask:</label>
+              <input
+                type="text"
+                id="new-textsearch-fieldmask"
+                placeholder="places.displayName,places.formattedAddress"
+                value="places.displayName,places.formattedAddress,places.rating"
+              />
+            </div>
+            <button class="test-btn" onclick="testNewTextSearch()">
+              새로운 텍스트 검색
+            </button>
+          </div>
+
+          <!-- New Nearby Search -->
+          <div class="test-card">
+            <h3>📍 Nearby Search (New)</h3>
+            <div class="description">
+              새로운 Places API v1 근처 검색 - 위치 기반 POST 요청
+            </div>
+            <div class="endpoint-url">POST /v1/places:searchNearby</div>
+
+            <div class="form-row">
+              <label>위도:</label>
+              <input
+                type="number"
+                id="new-nearby-lat"
+                placeholder="37.5665"
+                value="37.5665"
+                step="any"
+              />
+            </div>
+            <div class="form-row">
+              <label>경도:</label>
+              <input
+                type="number"
+                id="new-nearby-lng"
+                placeholder="126.978"
+                value="126.978"
+                step="any"
+              />
+            </div>
+            <div class="form-row">
+              <label>반경(m):</label>
+              <input
+                type="number"
+                id="new-nearby-radius"
+                placeholder="500"
+                value="500"
+              />
+            </div>
+            <div class="form-row">
+              <label>타입 필터:</label>
+              <input
+                type="text"
+                id="new-nearby-types"
+                placeholder="restaurant,cafe"
+                value="restaurant"
+              />
+            </div>
+            <div class="form-row">
+              <label>Field Mask:</label>
+              <input
+                type="text"
+                id="new-nearby-fieldmask"
+                placeholder="places.displayName,places.geometry"
+                value="places.displayName,places.formattedAddress,places.rating,places.types"
+              />
+            </div>
+            <button class="test-btn" onclick="testNewNearbySearch()">
+              새로운 근처 검색
+            </button>
+          </div>
+
+          <!-- New Autocomplete -->
+          <div class="test-card">
+            <h3>🔍 Autocomplete (New)</h3>
+            <div class="description">
+              새로운 Places API v1 자동완성 - POST 요청 방식
+            </div>
+            <div class="endpoint-url">POST /v1/places:autocomplete</div>
+
+            <div class="form-row">
+              <label>입력:</label>
+              <input
+                type="text"
+                id="new-autocomplete-input"
+                placeholder="스타벅스"
+                value="스타벅스"
+              />
+            </div>
+            <div class="form-row">
+              <label>언어 코드:</label>
+              <input
+                type="text"
+                id="new-autocomplete-language"
+                placeholder="ko"
+                value="ko"
+              />
+            </div>
+            <div class="form-row">
+              <label>세션 토큰:</label>
+              <input
+                type="text"
+                id="new-autocomplete-session"
+                placeholder="optional"
+                value=""
+              />
+            </div>
+            <button class="test-btn" onclick="testNewAutocomplete()">
+              새로운 자동완성
+            </button>
+          </div>
+
+          <!-- New Place Details -->
+          <div class="test-card">
+            <h3>📋 Place Details (New)</h3>
+            <div class="description">
+              새로운 Places API v1 장소 상세정보 - GET 요청
+            </div>
+            <div class="endpoint-url">GET /v1/places/{placeId}</div>
+
+            <div class="form-row">
+              <label>Place ID:</label>
+              <input
+                type="text"
+                id="new-details-placeid"
+                placeholder="ChIJN1t_tDeuEmsRUsoyG83frY4"
+                value="ChIJN1t_tDeuEmsRUsoyG83frY4"
+              />
+            </div>
+            <div class="form-row">
+              <label>언어 코드:</label>
+              <input
+                type="text"
+                id="new-details-language"
+                placeholder="ko"
+                value="ko"
+              />
+            </div>
+            <div class="form-row">
+              <label>Field Mask:</label>
+              <input
+                type="text"
+                id="new-details-fieldmask"
+                placeholder="displayName,formattedAddress"
+                value="displayName,formattedAddress,internationalPhoneNumber"
+              />
+            </div>
+            <button class="test-btn" onclick="testNewPlaceDetails()">
+              새로운 장소 상세정보
+            </button>
+          </div>
+
+          <!-- New Place Photos -->
+          <div class="test-card">
+            <h3>📷 Place Photos (New)</h3>
+            <div class="description">
+              새로운 Places API v1 사진 - GET 요청 (resource name 사용)
+            </div>
+            <div class="endpoint-url">GET /v1/places/{placeId}/photos/{photoReference}/media</div>
+
+            <div class="form-row">
+              <label>Place ID:</label>
+              <input
+                type="text"
+                id="new-photo-placeid"
+                placeholder="ChIJ2fzCmcW7j4AR2JzfXBBoh6E"
+                value="ChIJ2fzCmcW7j4AR2JzfXBBoh6E"
+              />
+            </div>
+            <div class="form-row">
+              <label>Photo Reference:</label>
+              <input
+                type="text"
+                id="new-photo-reference"
+                placeholder="ATKogpfnPwUwiV7KapDNTUoJRC7aHSO7t1zUfGikX-WAmPQGqVpa2eW5l5IA0..."
+                value="ATKogpfnPwUwiV7KapDNTUoJRC7aHSO7t1zUfGikX-WAmPQGqVpa2eW5l5IA0CiwZ3gRBbB4ppQ2hQQjZ-mL5G2WxN5rlQz5tSUJvQvxP9-OKZpW9uqZRVU6vrcj-RhzZktqULd8YDqAjeTRdIOeyDfa4q6x4uD9Yj2lqCsq5-Uohx902He016SN35FExAqLgGEB6Bl_iWvrl4h0LnNJ9pYVv8A3ixq54gIfoTXdTFLhOHM5oQcDENYq5i80Ae7Ns1M9SFqHUR86eHB2RewfgmR7OE1KaZr1PAQN46bD9UHFEXhU-tTmvrG7Swcn4Z1CDq31QRZvjHfc9ff6a_t8242Kq--6bQs6icSY0qVU8gznAkEcjwnGNx6jLMVgZe0CAbI7l3GLes4IzvbwCyeSE6v0zJH79xJRT-OhUDhmM7fkLpnV3A"
+              />
+            </div>
+            <div class="form-row">
+              <label>Max Width (px):</label>
+              <input
+                type="number"
+                id="new-photo-maxwidth"
+                placeholder="400"
+                value="400"
+                min="1"
+                max="4800"
+              />
+            </div>
+            <div class="form-row">
+              <label>Max Height (px):</label>
+              <input
+                type="number"
+                id="new-photo-maxheight"
+                placeholder="300"
+                value="300"
+                min="1"
+                max="4800"
+              />
+            </div>
+            <div class="form-row">
+              <label>
+                <input type="checkbox" id="new-photo-skip-redirect"> 
+                JSON 응답 받기 (skipHttpRedirect=true)
+              </label>
+            </div>
+            <button class="test-btn" onclick="testNewPlacePhotos()">
+              새로운 사진 가져오기
+            </button>
+            <div id="new-photo-result" style="margin-top: 15px; display: none;">
+              <strong>사진 결과:</strong><br>
+              <img id="new-photo-image" style="max-width: 100%; border-radius: 8px; margin-top: 10px;" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- New Routes API v2 테스트 섹션 -->
+      <div style="margin-top: 40px;">
+        <h2 style="text-align: center; color: #333; margin-bottom: 30px; font-size: 2em; 
+                   background: linear-gradient(45deg, #ff6b6b, #ee5a24); 
+                   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+          🛣️ New Routes API (v2) - 2024/2025
+        </h2>
+        <p style="text-align: center; color: #666; margin-bottom: 30px; font-size: 16px;">
+          최신 Google Routes API v2를 사용한 POST 요청 기반 경로/거리 계산 API 테스트
+        </p>
+
+        <div class="test-grid">
+          <!-- Compute Route -->
+          <div class="test-card">
+            <h3>🛣️ Compute Route (New)</h3>
+            <div class="description">
+              새로운 Routes API v2 경로 계산 - POST 요청 방식 (JSON 기반)
+            </div>
+            <div class="endpoint-url">POST /directions/v2:computeRoutes</div>
+
+            <div class="form-row">
+              <label>출발지:</label>
+              <input
+                type="text"
+                id="new-route-origin"
+                placeholder="35.6762,139.6503"
+                value="35.6762,139.6503"
+              />
+            </div>
+            <div class="form-row">
+              <label>목적지:</label>
+              <input
+                type="text"
+                id="new-route-destination"
+                placeholder="35.6854,139.7531"
+                value="35.6854,139.7531"
+              />
+            </div>
+            <div class="form-row">
+              <label>이동 방식:</label>
+              <select id="new-route-mode">
+                <option value="DRIVE">자동차</option>
+                <option value="WALK">도보</option>
+                <option value="BICYCLE">자전거</option>
+                <option value="TRANSIT">대중교통</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>언어:</label>
+              <input
+                type="text"
+                id="new-route-language"
+                placeholder="ko"
+                value="ko"
+              />
+            </div>
+            <div class="form-row">
+              <label>Field Mask:</label>
+              <input
+                type="text"
+                id="new-route-fieldmask"
+                placeholder="routes.duration,routes.distanceMeters,routes.polyline"
+                value="routes.duration,routes.distanceMeters,routes.polyline.encodedPolyline"
+              />
+            </div>
+            <button class="test-btn" onclick="testNewComputeRoute()">
+              새로운 경로 계산
+            </button>
+          </div>
+
+          <!-- Compute Route Matrix -->
+          <div class="test-card">
+            <h3>📊 Compute Route Matrix (New)</h3>
+            <div class="description">
+              새로운 Routes API v2 거리 매트릭스 - POST 요청 방식 (다중 출발지/목적지)
+            </div>
+            <div class="endpoint-url">POST /distanceMatrix/v2:computeRouteMatrix</div>
+
+            <div class="form-row">
+              <label>출발지 1:</label>
+              <input
+                type="text"
+                id="new-matrix-origin1"
+                placeholder="35.6762,139.6503"
+                value="35.6762,139.6503"
+              />
+            </div>
+            <div class="form-row">
+              <label>출발지 2:</label>
+              <input
+                type="text"
+                id="new-matrix-origin2"
+                placeholder="35.6854,139.7531"
+                value="35.6854,139.7531"
+              />
+            </div>
+            <div class="form-row">
+              <label>목적지 1:</label>
+              <input
+                type="text"
+                id="new-matrix-dest1"
+                placeholder="35.6586,139.7454"
+                value="35.6586,139.7454"
+              />
+            </div>
+            <div class="form-row">
+              <label>목적지 2:</label>
+              <input
+                type="text"
+                id="new-matrix-dest2"
+                placeholder="35.6785,139.7670"
+                value="35.6785,139.7670"
+              />
+            </div>
+            <div class="form-row">
+              <label>이동 방식:</label>
+              <select id="new-matrix-mode">
+                <option value="DRIVE">자동차</option>
+                <option value="WALK">도보</option>
+                <option value="BICYCLE">자전거</option>
+                <option value="TRANSIT">대중교통</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label>언어:</label>
+              <input
+                type="text"
+                id="new-matrix-language"
+                placeholder="ko"
+                value="ko"
+              />
+            </div>
+            <button class="test-btn" onclick="testNewComputeRouteMatrix()">
+              새로운 거리 매트릭스
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 결과 섹션 -->
+      <div class="result-section">
+        <h2>📊 테스트 결과</h2>
+        <button class="clear-btn" onclick="clearResults()">결과 초기화</button>
+        <div id="results"></div>
+      </div>
+    </div>
+
+    <script src="mondrian-test.js"></script>
+  </body>
+</html>

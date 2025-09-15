@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Places API Demo</title>
+    <link rel="stylesheet" href="simple-places-api.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Simple Places API Demo</h1>
+            <p>Google Maps Places API를 사용한 텍스트 검색 및 주변 검색</p>
+        </header>
+
+        <div class="controls">
+            <div class="search-section">
+                <h3>텍스트 검색 (Place.searchByText)</h3>
+                <div class="input-group">
+                    <input type="text" id="textQuery" placeholder="장소를 검색하세요 (예: '서울 카페', 'pizza in Seoul')" />
+                    <select id="includedType">
+                        <option value="">모든 장소 유형</option>
+                        <option value="restaurant">레스토랑</option>
+                        <option value="cafe">카페</option>
+                        <option value="hospital">병원</option>
+                        <option value="pharmacy">약국</option>
+                        <option value="gas_station">주유소</option>
+                        <option value="bank">은행</option>
+                        <option value="tourist_attraction">관광지</option>
+                    </select>
+                    <button onclick="performTextSearch()">텍스트 검색</button>
+                </div>
+            </div>
+
+            <div class="search-section">
+                <h3>주변 검색 (Place.searchNearby)</h3>
+                <div class="input-group">
+                    <input type="number" id="radius" placeholder="반경(미터)" value="2000" min="100" max="50000" />
+                    <select id="nearbyType">
+                        <option value="">모든 장소 유형</option>
+                        <option value="restaurant">레스토랑</option>
+                        <option value="cafe">카페</option>
+                        <option value="hospital">병원</option>
+                        <option value="pharmacy">약국</option>
+                        <option value="gas_station">주유소</option>
+                        <option value="bank">은행</option>
+                        <option value="tourist_attraction">관광지</option>
+                    </select>
+                    <select id="minRating">
+                        <option value="">최소 평점</option>
+                        <option value="1">1점 이상</option>
+                        <option value="2">2점 이상</option>
+                        <option value="3">3점 이상</option>
+                        <option value="4">4점 이상</option>
+                        <option value="4.5">4.5점 이상</option>
+                    </select>
+                    <label>
+                        <input type="checkbox" id="isOpenNow" /> 현재 영업 중
+                    </label>
+                    <button onclick="performNearbySearch()">주변 검색</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="map"></div>
+
+        <div class="results-container">
+            <div class="results-panel">
+                <h3>텍스트 검색 결과</h3>
+                <div id="textResults" class="results-list"></div>
+            </div>
+            <div class="results-panel">
+                <h3>주변 검색 결과</h3>
+                <div id="nearbyResults" class="results-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Google Maps JavaScript API -->
+    <script async defer
+        src="http://mondrian-new.sphinfo.co.kr:9443/google/jsapi/maps/api/js?key=YOUR_API_KEY&pass=YOUR_PASS&libraries=places&callback=initMap&loading=async">
+    </script>
+    <script src="simple-places-api.js"></script>
+</body>
+</html>
