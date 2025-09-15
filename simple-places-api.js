@@ -129,7 +129,6 @@ async function performNearbySearch(customLat = null, customLng = null) {
     const radius = parseInt(document.getElementById('radius').value) || 2000;
     const nearbyType = document.getElementById('nearbyType').value;
     const minRating = parseFloat(document.getElementById('minRating').value);
-    const isOpenNow = document.getElementById('isOpenNow').checked;
 
     // 이전 주변 검색 마커 제거
     clearMarkers(nearbySearchMarkers);
@@ -149,7 +148,7 @@ async function performNearbySearch(customLat = null, customLng = null) {
                     radius: radius
                 }
             },
-            pageSize: 20,
+            maxResultCount: 20,
             languageCode: 'ko'
         };
 
@@ -160,10 +159,6 @@ async function performNearbySearch(customLat = null, customLng = null) {
 
         if (minRating && minRating > 0) {
             requestBody.minRating = minRating;
-        }
-
-        if (isOpenNow) {
-            requestBody.openNow = true;
         }
 
         // API 요청
